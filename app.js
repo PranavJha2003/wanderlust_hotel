@@ -4,6 +4,12 @@ if(process.env.NODE_ENV!="production"){
 
 const express=require("express");
 const app=express();
+
+app.get("/healthz", (req, res) => {
+    res.status(200).json({
+        status: "ok"
+    });
+});
 const mongoose=require("mongoose");
 const Listing=require("./models/listing.js");
 const path=require("path");
@@ -27,15 +33,15 @@ const userRouter=require("./routes/user.js");
 
 const dbUrl=process.env.ATLASDB_URL;
 
-main().then(()=>{
-    console.log("connected to DB");
-}).catch((err)=>{     
-    console.log(err);
-})
+// main().then(()=>{
+//     console.log("connected to DB");
+// }).catch((err)=>{     
+//     console.log(err);
+// })
 
-async function main(){
-    await mongoose.connect(dbUrl);
-}
+// async function main(){
+//     await mongoose.connect(dbUrl);
+// }
 
 app.set("view engine","ejs");
 app.set("views",path.join(__dirname,"views"));
@@ -88,6 +94,7 @@ app.use((req,res,next)=>{
     next();
 })
 
+
 app.get("/demouser",async (req,res)=>{
     let fakeUser=new User({
         email:"student@gmail.com",
@@ -116,8 +123,28 @@ app.use((err, req, res, next)=> {
     res.status(statusCode).render("error.ejs",{message});
 })
 
-const port = process.env.PORT || 8080;
+// const port = process.env.PORT || 8080;
 
-app.listen(port, () => {
-    console.log(`server is listening to port ${port}`);
-});
+// app.listen(port, () => {
+//     console.log(`server is listening to port ${port}`);
+// });
+const port = process.env.PORT || 10000;
+
+async function startServer() {
+    try {
+        await mongoose.connect(dbUrl);
+
+        console.log("Connected to MongoDB");
+
+        app.listen(port, "0.0.0.0", () => {
+            console.log(`Server is listening on port ${port}`);
+        });
+
+    } catch (err) {
+        console.error("MongoDB connection failed:");
+        console.error(err);
+        process.exit(1);
+    }
+}
+
+startServer();
